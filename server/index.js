@@ -11,7 +11,19 @@ connection();
 app.use(express.json());
 app.use(cors());
 
-// routes  
+// import routes  
+const authRoutes = require("./routes/auth");
+const userRoutes = require("./routes/user");
+const transactionRoutes = require("./routes/transaction");
+const billPaymentRoutes = require("./routes/billPayments");
+const notificationRoutes = require("./routes/notification");
+
+// use routes
+app.use('/auth', authRoutes);
+app.use('/users', userRoutes);
+app.use('/transaction', transactionRoutes);
+app.use('/bill', billPaymentRoutes);
+app.use('/notification', notificationRoutes);
 
 
 
