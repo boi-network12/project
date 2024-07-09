@@ -12,6 +12,7 @@ const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(undefined);
 
+  // Check authentication status on component mount
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
@@ -27,6 +28,8 @@ const AuthProvider = ({ children }) => {
             setUser(data);
             setIsAuthenticated(true);
           } else {
+            // Token may be expired or invalid
+            await AsyncStorage.removeItem('token');
             setIsAuthenticated(false);
           }
         } else {
@@ -43,6 +46,7 @@ const AuthProvider = ({ children }) => {
     checkAuthStatus();
   }, []);
 
+  // Login function
   const login = async (email, password) => {
     try {
       const response = await fetch(`${SERVER_URL}/auth/login`, {
@@ -57,21 +61,27 @@ const AuthProvider = ({ children }) => {
       }
       const data = await response.json();
       await AsyncStorage.setItem('token', data.token);
+      // Optionally save the refresh token if you have one
+      // await AsyncStorage.setItem('refreshToken', data.refreshToken);
       const userResponse = await fetch(`${SERVER_URL}/auth/me`, {
         headers: {
           'Authorization': `Bearer ${data.token}`,
         },
       });
-      const userData = await userResponse.json();
-      setUser(userData);
-      setIsAuthenticated(true);
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        setUser(userData);
+        setIsAuthenticated(true);
+      } else {
+        throw new Error('Failed to fetch user data');
+      }
     } catch (error) {
-      console.log(error.message);
+      console.error('Login error:', error.message);
       throw error;
     }
   };
-  
 
+  // Register function
   const register = async (userData) => {
     try {
       const response = await fetch(`${SERVER_URL}/auth/register`, {
@@ -86,19 +96,51 @@ const AuthProvider = ({ children }) => {
       }
       // Optionally handle response if needed
     } catch (error) {
-      console.error('Registration error: ', error);
+      console.error('Registration error:', error);
       throw error;
     }
   };
 
+  // Logout function
   const logout = async () => {
-    await AsyncStorage.removeItem('token');
-    setUser(null);
-    setIsAuthenticated(false);
+    try {
+      await AsyncStorage.removeItem('token');
+      // Optionally remove the refresh token if you have one
+      // await AsyncStorage.removeItem('refreshToken');
+      setUser(null);
+      setIsAuthenticated(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  // Function to refresh token (if using a refresh token)
+  const refreshToken = async () => {
+    try {
+      const refreshToken = await AsyncStorage.getItem('refreshToken');
+      if (refreshToken) {
+        const response = await fetch(`${SERVER_URL}/auth/refresh`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ refreshToken }),
+        });
+        if (!response.ok) {
+          throw new Error('Refresh token failed');
+        }
+        const data = await response.json();
+        await AsyncStorage.setItem('token', data.token); 
+      } else {
+        throw new Error('No refresh token available');
+      }
+    } catch (error) {
+      console.error('Refresh token error:', error);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, login, register, logout, refreshToken }}>
       {!loading && children}
     </AuthContext.Provider>
   );
