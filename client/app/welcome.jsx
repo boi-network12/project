@@ -34,11 +34,11 @@ export default function Welcome() {
   const router = useRouter();
 
   const signUp = () => {
-    router.push("signup")
+    router.push("/signup")
   }
 
   const login = () => {
-    router.push("login")
+    router.push("/login")
   }
 
   useEffect(() => {

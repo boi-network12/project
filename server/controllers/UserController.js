@@ -124,27 +124,17 @@ const register = [
 const login = async (req, res) => {
     const { email, password } = req.body;
 
-    console.log('Login request received:', { email, password }); // Log incoming request
-
     try {
-        // Check if the user exists
         let user = await User.findOne({ email });
         if (!user) {
-            console.log('User does not exist:', email); // Log if user does not exist
             return res.status(400).json({ error: "User does not exist", message: "User does not exist" });
         }
 
-        // Compare password
-        console.log('Stored password hash:', user.password); // Log stored password hash
         const isMatch = await bcrypt.compare(password, user.password);
-        console.log('Password match result:', isMatch); // Log password comparison result
-
         if (!isMatch) {
-            console.log('Invalid credentials for user:', email); // Log if password does not match
             return res.status(400).json({ error: "Invalid credentials", message: "Invalid credentials" });
         }
 
-        //Return JWT token
         const payload = {
             user: {
                 id: user.id
@@ -156,19 +146,15 @@ const login = async (req, res) => {
             process.env.JWTPRIVATEKEY,
             { expiresIn: '1h' },
             (err, token) => {
-                if (err) {
-                    console.error('JWT signing error:', err); // Log JWT signing error
-                    throw err;
-                }
-                console.log('Login successful, token generated:', token); // Log successful login and token
+                if (err) throw err;
                 res.json({ token });
             }
         );
     } catch (error) {
-        console.error('Server error during login:', error.message); // Log server error
         res.status(500).json({ message: 'Server Error' });
     }
 };
+
 
 
 

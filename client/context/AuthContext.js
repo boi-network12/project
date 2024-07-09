@@ -12,7 +12,6 @@ const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(undefined);
 
-  // Check if user is authenticated
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
@@ -71,6 +70,7 @@ const AuthProvider = ({ children }) => {
       throw error;
     }
   };
+  
 
   const register = async (userData) => {
     try {
