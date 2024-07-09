@@ -60,24 +60,17 @@ const UserSchema = new Schema({
         type: Number,
         default: 500000,
     },
+    accountNumber: {
+        type: String,
+        required: true, // Make it required if it's a critical field
+        unique: true
+    },
     createdAt: {
         type: Date,
         default: Date.now,
     }
 });
 
-
-// password hashing
-UserSchema.pre('save', async function(next) {
-    if (this.isModified('password')) {
-        try {
-            this.password = await bcrypt.hash(this.password, 10);
-        } catch (error) {
-            return next(error);
-        }
-    }
-    next();
-});
 
 // Define instance methods
 UserSchema.methods.upgradeLimit = function() {

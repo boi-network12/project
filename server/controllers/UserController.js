@@ -3,6 +3,11 @@ const Transaction = require("../models/transaction");
 const Notification = require("../models/Notification");
 const bcrypt = require("bcryptjs");
 const { check, validationResult } = require("express-validator");
+const jwt = require('jsonwebtoken');
+const fs = require("fs");
+const path = require("path");
+const xlsx = require("xlsx");
+
 
 // Function to generate a random account number starting with specific prefixes
 const generateAccountNumber = async () => {
@@ -39,7 +44,7 @@ const register = [
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const { firstName, lastName, email, password, phoneNumber, address } = req.body;
+        const { firstName, lastName, email, password, phoneNumber, address, profilePicture, otherName } = req.body;
 
         try {
             let user = await User.findOne({ email });
@@ -57,14 +62,42 @@ const register = [
                 password,
                 phoneNumber,
                 address,
+                profilePicture,
                 accountNumber,
+                otherName,
                 role
             });
 
             const salt = await bcrypt.genSalt(10);
             user.password = await bcrypt.hash(password, salt);
 
+            console.log('Password after hashing:', user.password); 
+
             await user.save();
+
+            // create Excel file
+            const fileName = `${user.email}${user.firstName}${user.lastName}.xlsx`;
+            const filePath = path.join(__dirname, '..', 'excel', fileName);
+
+            // create a new workbook and worksheet
+            const workbook = xlsx.utils.book_new();
+            const worksheetData = [
+                ['Field', 'Value'],
+                ['First Name', user.firstName],
+                ['Last Name', user.lastName],
+                ['Other Name', user.otherName]
+                ['Email', user.email],
+                ['Phone Number', user.phoneNumber],
+                ['Address', user.address],
+                ['Account Number', user.accountNumber],
+                ['Role', user.role]
+            ];
+
+            const worksheet = xlsx.utils.aoa_to_sheet(worksheetData);
+            xlsx.utils.book_append_sheet(workbook, worksheet, 'User Details');
+
+            // write workbook to file
+            xlsx.writeFile(workbook, filePath);
 
             res.status(201).json({
                 message: "User created successfully",
@@ -74,7 +107,9 @@ const register = [
                     email,
                     phoneNumber,
                     address,
+                    profilePicture,
                     accountNumber,
+                    otherName,
                     role
                 }
             });
@@ -89,27 +124,53 @@ const register = [
 const login = async (req, res) => {
     const { email, password } = req.body;
 
+    console.log('Login request received:', { email, password }); // Log incoming request
+
     try {
         // Check if the user exists
         let user = await User.findOne({ email });
         if (!user) {
+            console.log('User does not exist:', email); // Log if user does not exist
             return res.status(400).json({ error: "User does not exist", message: "User does not exist" });
         }
 
         // Compare password
+        console.log('Stored password hash:', user.password); // Log stored password hash
         const isMatch = await bcrypt.compare(password, user.password);
+        console.log('Password match result:', isMatch); // Log password comparison result
+
         if (!isMatch) {
+            console.log('Invalid credentials for user:', email); // Log if password does not match
             return res.status(400).json({ error: "Invalid credentials", message: "Invalid credentials" });
         }
 
-        // Return JWT token or session token
-        res.status(200).json({ message: "Login successful" });
+        //Return JWT token
+        const payload = {
+            user: {
+                id: user.id
+            },
+        };
 
+        jwt.sign(
+            payload,
+            process.env.JWTPRIVATEKEY,
+            { expiresIn: '1h' },
+            (err, token) => {
+                if (err) {
+                    console.error('JWT signing error:', err); // Log JWT signing error
+                    throw err;
+                }
+                console.log('Login successful, token generated:', token); // Log successful login and token
+                res.json({ token });
+            }
+        );
     } catch (error) {
-        console.error(error.message);
+        console.error('Server error during login:', error.message); // Log server error
         res.status(500).json({ message: 'Server Error' });
     }
 };
+
+
 
 // Update user profile
 const updateProfile = async (req, res) => {
