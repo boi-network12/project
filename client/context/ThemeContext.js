@@ -7,16 +7,12 @@ const themes = {
     dark: {
         background: "#rgba(0,0,0,0.9)",
         text: "#f2f2f2", 
-        secondary: "#ddd",
-        accent: "#ccc",
-        primary: "#003366",
+        primaryBtn: "#4c3bcf",
     },
     light: {
         background: "#f2f2ff", 
-        text: "#333",      
-        secondary: "#ddd",
-        accent: "#ccc",
-        primary: "#4c3bcf"
+        text: "#333",
+        primaryBtn: "#4c3bcf"
     },
 };
 
