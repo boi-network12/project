@@ -44,7 +44,7 @@ const register = [
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const { firstName, lastName, email, password, phoneNumber, address, profilePicture, otherName } = req.body;
+        const { firstName, lastName, email, password, phoneNumber, address, profilePicture = "", otherName = "" } = req.body;
 
         try {
             let user = await User.findOne({ email });
@@ -71,21 +71,32 @@ const register = [
             const salt = await bcrypt.genSalt(10);
             user.password = await bcrypt.hash(password, salt);
 
-            console.log('Password after hashing:', user.password); 
-
             await user.save();
 
-            // create Excel file
+            // Generate a token
+            const payload = {
+                user: {
+                    id: user.id
+                },
+            };
+
+            const token = jwt.sign(
+                payload,
+                process.env.JWTPRIVATEKEY,
+                { expiresIn: '1h' }
+            );
+
+            // Create Excel file
             const fileName = `${user.email}${user.firstName}${user.lastName}.xlsx`;
             const filePath = path.join(__dirname, '..', 'excel', fileName);
 
-            // create a new workbook and worksheet
+            // Create a new workbook and worksheet
             const workbook = xlsx.utils.book_new();
             const worksheetData = [
                 ['Field', 'Value'],
                 ['First Name', user.firstName],
                 ['Last Name', user.lastName],
-                ['Other Name', user.otherName]
+                ['Other Name', user.otherName],
                 ['Email', user.email],
                 ['Phone Number', user.phoneNumber],
                 ['Address', user.address],
@@ -96,29 +107,34 @@ const register = [
             const worksheet = xlsx.utils.aoa_to_sheet(worksheetData);
             xlsx.utils.book_append_sheet(workbook, worksheet, 'User Details');
 
-            // write workbook to file
+            // Write workbook to file
             xlsx.writeFile(workbook, filePath);
 
-            res.status(201).json({
+            // Send response
+            return res.status(201).json({
                 message: "User created successfully",
+                token,  
                 user: {
-                    firstName,
-                    lastName,
-                    email,
-                    phoneNumber,
-                    address,
-                    profilePicture,
-                    accountNumber,
-                    otherName,
-                    role
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    email: user.email,
+                    phoneNumber: user.phoneNumber,
+                    address: user.address,
+                    accountNumber: user.accountNumber,
+                    otherName: user.otherName,
+                    role: user.role
                 }
             });
+
         } catch (error) {
             console.error(error.message);
-            res.status(500).json({ error: error.message, message: "Internal server error" });
+            return res.status(500).json({ error: error.message, message: "Internal server error" });
         }
     }
 ];
+
+
+
 
 // Login user
 const login = async (req, res) => {
@@ -147,7 +163,12 @@ const login = async (req, res) => {
             { expiresIn: '1h' },
             (err, token) => {
                 if (err) throw err;
-                res.json({ token });
+                res.json({
+                    token,
+                    user: {
+                        id: user.id,
+                    }
+                })
             }
         );
     } catch (error) {
@@ -201,21 +222,23 @@ const submitKyc = async (req, res) => {
 // Get user details
 const getUserDetails = async (req, res) => {
     const userId = req.params.userId;
-
+  
     try {
-        const user = await User.findById(userId);
-
-        if (!user) {
-            return res.status(404).json({ error: "User not found", message: "User not found" });
-        }
-
-        res.status(200).json({ message: "User details retrieved successfully", user });
-
+      console.log(`Fetching user with ID: ${userId}`);
+      
+      const user = await User.findById(userId);
+  
+      if (!user) {
+        return res.status(404).json({ error: "User not found", message: "User not found" });
+      }
+  
+      res.status(200).json({ message: "User details retrieved successfully", user });
+  
     } catch (error) {
-        console.error(error.message);
-        res.status(500).json({ message: 'Server Error' });
+      console.error(error.message);
+      res.status(500).json({ message: 'Server Error' });
     }
-};
+  };
 
 // Get user transactions
 const getUserTransactions = async (req, res) => {
@@ -300,6 +323,25 @@ const markNotificationAsRead = async (req, res) => {
     }
 };
 
+// delete user 
+const deleteUser = async (req, res) => {
+    const { userId } = req.params
+
+    try {
+        const user = await User.findByIdAndDelete(userId)
+
+        if(!user) return res.status(404).json({
+            error: "User not found",
+            message: "User not found"
+        })
+
+        res.status(200).json({ message: "User deleted Successfully", user })
+    } catch (error) {
+        console.error(error.message)
+        res.status(500).json({ message: "Server Error" })
+    }
+}
+
 // Export controllers
 module.exports = {
     login,
@@ -309,5 +351,6 @@ module.exports = {
     getUserDetails,
     getUserTransactions,
     payBill,
-    markNotificationAsRead
+    markNotificationAsRead,
+    deleteUser
 };

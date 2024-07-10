@@ -1,12 +1,13 @@
 const express = require("express");
 const router = express.Router();
-const { login, register } = require("../controllers/UserController");
+const { login, register, deleteUser } = require("../controllers/UserController");
 const verifyToken = require("../middleware/authentication");
 const User = require('../models/user');
 
 // Public routes
 router.post('/register', register);
 router.post('/login', login);
+router.delete('/delete/:userId', deleteUser, verifyToken)
 
 // Authenticated route
 router.get('/me', verifyToken, async (req, res) => {

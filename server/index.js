@@ -8,8 +8,8 @@ const connection = require("./db")
 connection();
 
 // middlewares 
-app.use(express.json());
 app.use(cors());
+app.use(express.json());
 
 // import routes  
 const authRoutes = require("./routes/auth");

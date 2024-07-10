@@ -9,59 +9,54 @@ import { useFonts } from 'expo-font';
 SplashScreen.preventAutoHideAsync();
 
 const MainLayout = () => {
-  const { isAuthenticated } = useAuth();
-  const segments = useSegments();
-  const router = useRouter();
-  const [fontsLoaded, error] = useFonts({
-    'SpaceMono': require('../assets/fonts/SpaceMono-Regular.ttf'),
-    'Roboto-Black': require('../assets/fonts/Roboto-Black.ttf'),
-    'Roboto-Bold': require('../assets/fonts/Roboto-Bold.ttf'),
-    'Roboto-Regular': require('../assets/fonts/Roboto-Regular.ttf'),
-  });
+  const {isAuthenticated} = useAuth();
+    const segments = useSegments();
+    const router = useRouter();
+    const [fontsLoaded] = useFonts({
+      'SpaceMono': require('../assets/fonts/SpaceMono-Regular.ttf'),
+      'Roboto-Black': require('../assets/fonts/Roboto-Black.ttf'),
+      'Roboto-Bold': require('../assets/fonts/Roboto-Bold.ttf'),
+      'Roboto-Regular': require('../assets/fonts/Roboto-Regular.ttf'),
+    });
 
   useEffect(() => {
-    if (isAuthenticated === undefined) return;
+    // 
+    if (typeof isAuthenticated == 'undefined') return
 
-    const inApp = segments[0] === '(app)';
-    if (isAuthenticated && !inApp) {
-      router.replace('/home');
-    } else if (!isAuthenticated && inApp) {
-      router.replace('/signup');
-    }
-  }, [isAuthenticated, segments]);
+    const inApp = segments[0] == '(app)'
+    if (isAuthenticated && !inApp){
+      router.replace('home')
+    } else if (isAuthenticated === false) {
+      router.replace('welcome')
+  }
+  },[isAuthenticated])
 
   useEffect(() => {
-    if (fontsLoaded || error) {
+    if (fontsLoaded) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, error]);
+  }, [fontsLoaded]);
 
   if (!fontsLoaded) {
     return (
-      <View style={styles.loadingContainer}>
+      <View >
         <ActivityIndicator size="large" />
       </View>
     );
   }
 
-  return <Slot />;
-};
+  return <Slot/>
+
+}
 
 
-const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
-
-export default function RootLayout() {
+export default function RootLayout(){
   return (
+     
     <ThemeProvider>
-      <AuthProvider>
-        <MainLayout />
-      </AuthProvider>
-    </ThemeProvider>
-  );
+    <AuthProvider>
+      <MainLayout />
+    </AuthProvider>
+  </ThemeProvider>
+  )
 }

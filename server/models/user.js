@@ -14,6 +14,7 @@ const UserSchema = new Schema({
     },
     otherName: {
         type: String,
+        default: ""  // Default to an empty string if not provided
     },
     email: {
         type: String,
@@ -32,6 +33,7 @@ const UserSchema = new Schema({
     },
     profilePicture: {
         type: String,
+        default: ""  // Default to an empty string if not provided
     },
     address: {
         type: String,
@@ -39,10 +41,11 @@ const UserSchema = new Schema({
     },
     role: {
         type: String,
-        default: 'user', // Set default role to 'user'
+        default: 'user',
     },
     status: {
         type: String,
+        default: ""  // Default to an empty string if not provided
     },
     balance: {
         type: Number,
@@ -62,7 +65,7 @@ const UserSchema = new Schema({
     },
     accountNumber: {
         type: String,
-        required: true, // Make it required if it's a critical field
+        required: true,
         unique: true
     },
     createdAt: {
@@ -70,6 +73,7 @@ const UserSchema = new Schema({
         default: Date.now,
     }
 });
+
 
 
 // Define instance methods

@@ -8,11 +8,17 @@ const themes = {
         background: "#rgba(0,0,0,0.9)",
         text: "#f2f2f2", 
         primaryBtn: "#4c3bcf",
+        btnTab: "#333333",
+        dashBoardColorText: "#f4f4f4",
+        clickBackGround: "#333"
     },
     light: {
-        background: "#f2f2ff", 
+        background: "#f2f2f2", 
         text: "#333",
-        primaryBtn: "#4c3bcf"
+        primaryBtn: "#4c3bcf",
+        btnTab: "#f2f2f2",
+        dashBoardColorText: "#f4f4f4",
+        clickBackGround: "#dddddd"
     },
 };
 

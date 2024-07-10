@@ -1,24 +1,62 @@
-import { View, Text } from 'react-native'
-import React, { useEffect } from 'react'
-import { Tabs, useRouter } from "expo-router"
+import React from 'react';
+import { Tabs, useRouter } from 'expo-router';
 import TabBars from '../../components/tabBars';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+import HomeHeader from '../../components/HomeHeader';
+import CardHeader from '../../components/CardHeader';
+import HistoryHeader from '../../components/HistoryHeader';
+import BillsHeader from '../../components/BillsHeader';
+import ProfileHeader from '../../components/ProfileHeader';
+import { useAuth } from '../../context/AuthContext';
+import AccountHeader from '../../components/AccountHeader';
 
 export default function _layout() {
-  const router = useRouter();
-
-  
-
+  const { user } = useAuth();
+  const router = useRouter()
 
   return (
-    <Tabs tabBar={props => <TabBars {...props}/>}>
+    <Tabs tabBar={(props) => <TabBars {...props} />}>
       <Tabs.Screen
-          name="index"
-          options={{
-            title: "Home",
-            tabBarIcon: ({ color }) => <FontAwesome size={20} name="home" />,
-          }}
+        name="home"
+        options={{
+          title: "Home",
+          header: () => <HomeHeader user={user} />,
+        }}
+      />
+      <Tabs.Screen
+        name="card"
+        options={{
+          title: "Card",
+          header: () => <CardHeader user={user} />,
+        }}
+      />
+      <Tabs.Screen
+        name="history"
+        options={{
+          title: "History",
+          header: () => <HistoryHeader user={user} />,
+        }}
+      />
+      <Tabs.Screen
+        name="bills"
+        options={{
+          title: "Bills",
+          header: () => <BillsHeader user={user} />,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          header: () => <ProfileHeader user={user} />,
+        }}
+      />
+      <Tabs.Screen
+        name="account"
+        options={{
+          title: "Account",
+          header: () => <AccountHeader user={user} router={router}/>
+        }}
       />
     </Tabs>
-  )
-};
+  );
+}

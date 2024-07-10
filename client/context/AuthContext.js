@@ -12,31 +12,43 @@ const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(undefined);
 
-  // Check authentication status on component mount
+  const storeTokenAndUserId = async (token, userId) => {
+    try {
+      if (token) {
+        await AsyncStorage.setItem('token', token);
+      }
+      if (userId) {
+        await AsyncStorage.setItem('userId', userId);
+      }
+    } catch (error) {
+      console.error('Error storing token and userId:', error);
+    }
+  };
+
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
+        const userId = await AsyncStorage.getItem('userId');
         if (token) {
           const response = await fetch(`${SERVER_URL}/auth/me`, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-            },
+            headers: { 'Authorization': `Bearer ${token}` },
           });
+
           if (response.ok) {
             const data = await response.json();
             setUser(data);
             setIsAuthenticated(true);
           } else {
-            // Token may be expired or invalid
             await AsyncStorage.removeItem('token');
+            await AsyncStorage.removeItem('userId');
             setIsAuthenticated(false);
           }
         } else {
           setIsAuthenticated(false);
         }
       } catch (error) {
-        console.error('Failed to check auth status', error);
+        console.error('Failed to check auth status:', error);
         setIsAuthenticated(false);
       } finally {
         setLoading(false);
@@ -46,7 +58,6 @@ const AuthProvider = ({ children }) => {
     checkAuthStatus();
   }, []);
 
-  // Login function
   const login = async (email, password) => {
     try {
       const response = await fetch(`${SERVER_URL}/auth/login`, {
@@ -60,9 +71,7 @@ const AuthProvider = ({ children }) => {
         throw new Error('Login failed');
       }
       const data = await response.json();
-      await AsyncStorage.setItem('token', data.token);
-      // Optionally save the refresh token if you have one
-      // await AsyncStorage.setItem('refreshToken', data.refreshToken);
+      await storeTokenAndUserId(data.token, data.user.id);
       const userResponse = await fetch(`${SERVER_URL}/auth/me`, {
         headers: {
           'Authorization': `Bearer ${data.token}`,
@@ -81,7 +90,6 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  // Register function
   const register = async (userData) => {
     try {
       const response = await fetch(`${SERVER_URL}/auth/register`, {
@@ -94,19 +102,30 @@ const AuthProvider = ({ children }) => {
       if (!response.ok) {
         throw new Error('Registration failed');
       }
-      // Optionally handle response if needed
+      const data = await response.json();
+      await storeTokenAndUserId(data.token, data.user.id);
+      setIsAuthenticated(true);
+      const userResponse = await fetch(`${SERVER_URL}/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${data.token}`,
+        },
+      });
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        setUser(userData);
+      } else {
+        throw new Error('Failed to fetch user data');
+      }
     } catch (error) {
       console.error('Registration error:', error);
       throw error;
     }
   };
 
-  // Logout function
   const logout = async () => {
     try {
       await AsyncStorage.removeItem('token');
-      // Optionally remove the refresh token if you have one
-      // await AsyncStorage.removeItem('refreshToken');
+      await AsyncStorage.removeItem('userId');
       setUser(null);
       setIsAuthenticated(false);
     } catch (error) {
@@ -114,7 +133,6 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  // Function to refresh token (if using a refresh token)
   const refreshToken = async () => {
     try {
       const refreshToken = await AsyncStorage.getItem('refreshToken');
@@ -130,7 +148,7 @@ const AuthProvider = ({ children }) => {
           throw new Error('Refresh token failed');
         }
         const data = await response.json();
-        await AsyncStorage.setItem('token', data.token); 
+        await storeTokenAndUserId(data.token, data.user.id);
       } else {
         throw new Error('No refresh token available');
       }
@@ -139,9 +157,36 @@ const AuthProvider = ({ children }) => {
     }
   };
 
+  const deleteUser = async (userId) => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const response = await fetch(`${SERVER_URL}/auth/delete/${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Delete user failed');
+      }
+  
+      await AsyncStorage.removeItem('token');
+      await AsyncStorage.removeItem('userId');
+      setUser(null);
+      setIsAuthenticated(false);
+    } catch (error) {
+      console.error('Delete User error', error);
+      throw error;
+    }
+  };
+  
+
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, register, logout, refreshToken }}>
-      {!loading && children}
+    <AuthContext.Provider value={{ user, isAuthenticated, login, register, logout, refreshToken, setIsAuthenticated, setUser, deleteUser }}>
+      {children}
     </AuthContext.Provider>
   );
 };

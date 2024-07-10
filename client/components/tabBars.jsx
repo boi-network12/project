@@ -5,34 +5,42 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Entypo from "@expo/vector-icons/Entypo";
 import Feather from "@expo/vector-icons/Feather";
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import React from 'react';
+import React, { useContext } from 'react';
+import { ThemeContext } from '../context/ThemeContext';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 
 const TabBars = ({ state, descriptors, navigation }) => {
-  const colorActive = '#673ab7';
-  const colorNotActive = '#333';
+  const theme = useContext(ThemeContext);
+  const colorActive = theme.primaryBtn;
+  const colorNotActive = theme.text;
 
   const icons = {
-    index: (props) => <Feather name="home" size={20} color={colorActive} {...props} />,
-
-    status: (props) => <MaterialCommunityIcons name="camera-timer" size={20} color={colorActive} {...props} />,
-
-    explore: (props) => <AntDesign name="smileo" size={20} color={colorActive} {...props} />,
-    
+    home: (props) => <Feather name="home" size={20} color={colorActive} {...props} />,
+    card: (props) => <FontAwesome6 name="credit-card" size={20} color={colorActive} {...props} />,
+    history: (props) => <MaterialIcons name="history" size={20} color={colorActive} {...props} />,
+    bills: (props) => <MaterialIcons name="receipt-long" size={20} color={colorActive} {...props} />,
     profile: (props) => <FontAwesome name="user-circle-o" size={20} color={colorActive} {...props} />,
   };
 
+  // Determine if the current screen has an icon
+  const hasIcon = (route) => {
+    return icons[route.name];
+  };
+
+  // Get the current route
+  const currentRoute = state.routes[state.index];
+
   return (
-    <View style={styles.tabBars}>
-      {state.routes.map((route, index) => {
+    <View style={[styles.tabBars, { backgroundColor: theme.btnTab }]}>
+      {/* Render tabs only if the current screen has an icon */}
+      {hasIcon(currentRoute) && state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
-        const label = 
+        const label =
           options.tabBarLabel !== undefined
             ? options.tabBarLabel
             : options.title !== undefined
             ? options.title
             : route.name;
-
-        if (['_sitemap', 'not-found'].includes(route.name)) return null;
 
         const isFocused = state.index === index;
 
@@ -55,12 +63,9 @@ const TabBars = ({ state, descriptors, navigation }) => {
           });
         };
 
-        // Logging route names and checking if the icon exists
-        console.log(`Rendering tab for route: ${route.name}`);
         const IconComponent = icons[route.name];
         if (!IconComponent) {
-          console.error(`No icon defined for route: ${route.name}`);
-          return null;
+          return null;  // Skip rendering this tab item
         }
 
         return (
@@ -75,10 +80,7 @@ const TabBars = ({ state, descriptors, navigation }) => {
             onLongPress={onLongPress}
           >
             <IconComponent color={isFocused ? colorActive : colorNotActive} />
-            <Text style={{ 
-              color: isFocused ? colorActive : colorNotActive,
-              fontSize: 14
-            }}>
+            <Text style={{ color: isFocused ? colorActive : colorNotActive, fontSize: 14 }}>
               {label}
             </Text>
           </TouchableOpacity>
@@ -91,19 +93,17 @@ const TabBars = ({ state, descriptors, navigation }) => {
 const styles = StyleSheet.create({
   tabBars: {
     position: 'absolute',
-    bottom: 25,
+    bottom: 0,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: "#fff",
-    marginHorizontal: 10,
     paddingVertical: 13,
-    borderRadius: 15,
     borderCurve: 'continuous',
     shadowColor: "#333",
-    shadowOffset: { width: 0, height: 10 },
+    shadowOffset: { width: 0, height: -5 },
     shadowRadius: 10,
-    shadowOpacity: 0.1
+    shadowOpacity: 0.1,
+    elevation: 5
   },
   tabBarItem: {
     flex: 1,
