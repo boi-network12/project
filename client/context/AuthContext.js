@@ -359,12 +359,120 @@ const AuthProvider = ({ children }) => {
     }
   };
   
+  // Add role based functionality
+  const confirmKyc = async (kycId) => {
+    try {
+      if (user.role !== 'admin') throw new Error('Only admin can confirm KYC');
+      const token = await AsyncStorage.getItem('token');
+      if (!token) throw new Error('No token available');
+
+      const response = await fetch(`${SERVER_URL}/kyc/confirm-kyc/${kycId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to confirm KYC');
+      }
+
+      const data = await response.json();
+      console.log('KYC confirmed:', data);
+      return data;
+    } catch (error) {
+      console.error('Confirm KYC error:', error);
+      throw error;
+    }
+  }
+
+  const getAllKyc = async () => {
+    try {
+      if (user.role !== 'admin') throw new Error('Only admin can get all KYC');
+      const token = await AsyncStorage.getItem('token');
+      if (!token) throw new Error('No token available');
+
+      const response = await fetch(`${SERVER_URL}/kyc/get-all-records`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to fetch all KYC');
+      }
+
+      const data = await response.json();
+      console.log('Fetched all KYC data:', data);
+      return data;
+    } catch (error) {
+      console.error('Get all KYC error:', error);
+      throw error;
+    }
+  };
+
+  const rejectKyc = async (kycId) => {
+    try {
+      if (user.role !== 'admin') throw new Error('Only admin can reject KYC');
+      const token = await AsyncStorage.getItem('token');
+      if (!token) throw new Error('No token available');
+
+      const response = await fetch(`${SERVER_URL}/kyc/reject-kyc/${kycId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to reject KYC');
+      }
+
+      const data = await response.json();
+      console.log('KYC rejected:', data);
+      return data;
+    } catch (error) {
+      console.error('Reject KYC error:', error);
+      throw error;
+    }
+  };
+  
+  const postKycData = async (kycData) => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const userId = await AsyncStorage.getItem('userId');
+      
+      const response = await fetch(`${SERVER_URL}/kyc/upload-kyc`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ ...kycData, userId }), 
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Failed to post KYC data:', errorData);
+        throw new Error(errorData.message || 'Failed to post KYC data');
+      }
+
+      const data = await response.json();
+      console.log('KYC data posted:', data);
+      return data;
+    } catch (error) {
+      console.error('Post KYC data error:', error);
+      throw error;
+    }
+  };
   
   
 
-
-  
-  
 
   return (
     <AuthContext.Provider value={{ 
@@ -383,7 +491,11 @@ const AuthProvider = ({ children }) => {
       nextOfKin,
       fetchNextOfKin,
       updateUserStatus,
-      changeEmail
+      changeEmail,
+      confirmKyc,
+      getAllKyc,
+      rejectKyc,
+      postKycData
       }}>
       {children}
     </AuthContext.Provider>
