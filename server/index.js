@@ -8,8 +8,15 @@ const connection = require("./db")
 connection();
 
 // middlewares 
-app.use(cors());
-app.use(express.json());
+app.use(cors({
+    origin: '*', // You can specify your frontend URL here for better security
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+app.use(express.json({
+    limit: "1mb"
+}));
 
 // import routes  
 const authRoutes = require("./routes/auth");
@@ -17,6 +24,7 @@ const userRoutes = require("./routes/user");
 const transactionRoutes = require("./routes/transaction");
 const billPaymentRoutes = require("./routes/billPayments");
 const notificationRoutes = require("./routes/notification");
+const nextOfKinRoutes = require('./routes/nextOfKin');
 
 // use routes
 app.use('/auth', authRoutes);
@@ -24,6 +32,7 @@ app.use('/users', userRoutes);
 app.use('/transaction', transactionRoutes);
 app.use('/bill', billPaymentRoutes);
 app.use('/notification', notificationRoutes);
+app.use('/nextOfKin', nextOfKinRoutes);
 
 
 

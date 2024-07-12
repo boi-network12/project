@@ -11,6 +11,8 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(undefined);
+  const [nextOfKin, setNextOfKin] = useState(null)
+  
 
   const storeTokenAndUserId = async (token, userId) => {
     try {
@@ -24,21 +26,29 @@ const AuthProvider = ({ children }) => {
       console.error('Error storing token and userId:', error);
     }
   };
+  
+  
 
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
         const token = await AsyncStorage.getItem('token');
+        console.log('Fetched Token:', token);
+
         const userId = await AsyncStorage.getItem('userId');
+        console.log('Fetched userId:', userId); 
+
         if (token) {
           const response = await fetch(`${SERVER_URL}/auth/me`, {
             headers: { 'Authorization': `Bearer ${token}` },
           });
-
+  
           if (response.ok) {
             const data = await response.json();
             setUser(data);
             setIsAuthenticated(true);
+            await fetchNextOfKin();
+            
           } else {
             await AsyncStorage.removeItem('token');
             await AsyncStorage.removeItem('userId');
@@ -54,9 +64,10 @@ const AuthProvider = ({ children }) => {
         setLoading(false);
       }
     };
-
+  
     checkAuthStatus();
   }, []);
+  
 
   const login = async (email, password) => {
     try {
@@ -103,16 +114,20 @@ const AuthProvider = ({ children }) => {
         throw new Error('Registration failed');
       }
       const data = await response.json();
+      console.log('Register response data:', data);
+
       await storeTokenAndUserId(data.token, data.user.id);
       setIsAuthenticated(true);
+
       const userResponse = await fetch(`${SERVER_URL}/auth/me`, {
         headers: {
           'Authorization': `Bearer ${data.token}`,
         },
       });
+
       if (userResponse.ok) {
         const userData = await userResponse.json();
-        setUser(userData);
+        setUser(userData);//
       } else {
         throw new Error('Failed to fetch user data');
       }
@@ -156,7 +171,7 @@ const AuthProvider = ({ children }) => {
       console.error('Refresh token error:', error);
     }
   };
-
+  
   const deleteUser = async (userId) => {
     try {
       const token = await AsyncStorage.getItem('token');
@@ -182,10 +197,194 @@ const AuthProvider = ({ children }) => {
       throw error;
     }
   };
+
+  
+  // fetch nextOfKin data from AsyncStorage
+  const fetchNextOfKin = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      const userId = await AsyncStorage.getItem('userId');
+      const response = await fetch(`${SERVER_URL}/nextOfKin/${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if(!response.ok) {
+        throw new Error('Failed to fetch next of kin data');
+      }
+
+      const data = await response.json();
+      setNextOfKin(data.nextOfKin);
+
+      return data.nextOfKin;
+
+    } catch (error) {
+      console.error('Fetch next of kin error: ', error);
+    }
+  };
+  
+  const fetchTokenAndUserId = async () => {
+    try {
+      // Retrieve the token from AsyncStorage
+      const token = await AsyncStorage.getItem('token');
+      if (!token) throw new Error('Token not found');
+  
+      // Retrieve the userId from AsyncStorage
+      const userId = await AsyncStorage.getItem('userId');
+      if (!userId) throw new Error('User ID not found');
+  
+      return { token, userId };
+    } catch (error) {
+      console.error('Error fetching token and userId:', error.message);
+      throw error;
+    }
+  };
+  
+
+  // add next of kin data
+  const addNextOfKin = async (nextOfKinData) => {
+    try {
+      // Fetch token and userId
+      const { token, userId } = await fetchTokenAndUserId();
+  
+      const response = await fetch(`${SERVER_URL}/nextOfKin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ ...nextOfKinData, userId }),  // Ensure userId is included
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        console.error('Failed to add next of kin:', data.errors || data.message);
+        throw new Error(data.errors ? data.errors.map(err => err.msg).join(', ') : data.message);
+      }
+  
+      console.log('Add next of kin response data:', data);
+      return data;
+    } catch (error) {
+      console.error('Add next of kin error:', error.message);
+      throw error;
+    }
+  };
+  
+
+  
+  const updateNextOfKin = async (id, updates) => {
+    try {
+      if (!id) throw new Error('No next of kin ID provided');
+      const token = await AsyncStorage.getItem('token');
+      if (!token) throw new Error('No token available');
+  
+      const response = await fetch(`${SERVER_URL}/nextOfKin/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(updates),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Update next of kin error:', errorData);
+        throw new Error(errorData.message || 'Failed to update next of kin');
+      }
+  
+      // Fetch the updated list of next of kin
+      await fetchNextOfKin();
+  
+    } catch (error) {
+      console.error('Update next of kin error:', error);
+      throw error;
+    }
+  };
+  
+  
+  
+  const updateUserStatus = async (userId, newStatus) => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) throw new Error('No token available');
+  
+      const response = await fetch(`${SERVER_URL}/users/status/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+  
+      const data = await response.json();
+      if (response.ok) {
+        console.log('User status updated:', data);
+      } else {
+        console.error('Error updating status:', data.msg);
+      }
+    } catch (error) {
+      console.error('Error updating user status:', error);
+    }
+  };
+  
+  
+  const changeEmail = async (newEmail, password) => {
+    try {
+      const token = await AsyncStorage.getItem('token');  // Fetch the token from AsyncStorage
+  
+      if (!token) throw new Error('No token available');  // Check if token is available
+      
+      const response = await fetch(`${SERVER_URL}/auth/change-email`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ newEmail, password })
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        console.log('Email changed successfully:', data);
+      } else {
+        throw new Error(data.message || 'Something went wrong');
+      }
+    } catch (error) {
+      throw new Error('Network error: ' + error.message);
+    }
+  };
+  
+  
+  
+
+
+  
   
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, register, logout, refreshToken, setIsAuthenticated, setUser, deleteUser }}>
+    <AuthContext.Provider value={{ 
+      user,
+      isAuthenticated, 
+      login, 
+      register, 
+      logout, 
+      refreshToken, 
+      setIsAuthenticated, 
+      setUser, 
+      deleteUser,  
+      fetchNextOfKin, 
+      addNextOfKin, 
+      updateNextOfKin,
+      nextOfKin,
+      fetchNextOfKin,
+      updateUserStatus,
+      changeEmail
+      }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const bcrypt = require("bcryptjs");
+
 
 // Define the schema for user
 const UserSchema = new Schema({
@@ -68,6 +68,12 @@ const UserSchema = new Schema({
         required: true,
         unique: true
     },
+    nextOfKin: [{
+        type: Schema.Types.ObjectId,
+        ref: "NextOfKin",
+        required: true
+    }]
+    ,
     createdAt: {
         type: Date,
         default: Date.now,

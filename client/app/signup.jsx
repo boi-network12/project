@@ -8,6 +8,7 @@ import CustomKeyboardView from '../components/customeKeyboard';
 import { heightPercentageToDP as hp, widthPercentageToDP as wp } from 'react-native-responsive-screen';
 import { StatusBar } from "expo-status-bar";
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { useAlert } from '../context/AlertContext';
 
 const SignupSchema = Yup.object().shape({
   firstName: Yup.string().required('First name is required'),
@@ -31,6 +32,7 @@ const steps = [
 
 export default function Signup() {
   const { register } = useAuth();
+  const { showAlert } = useAlert();
   const theme = useContext(ThemeContext);
   const [step, setStep] = useState(0);
   const [query, setQuery] = useState('');
@@ -74,7 +76,7 @@ export default function Signup() {
           onSubmit={async (values, { setSubmitting, setErrors }) => {
             try {
               await register(values);
-              alert('Register Successful!');
+              showAlert('success', 'success', 'Register Successful')
             } catch (error) {
               setErrors({ api: error.message });
             } finally {
@@ -88,7 +90,7 @@ export default function Signup() {
                 step === index && (
                   stepInfo.name === 'address' ? (
                     <View key={index} style={styles.fieldContainer}>
-                      <Text style={[styles.label, { color: "#f2f2f2" }]}>{stepInfo.label}</Text>
+                      <Text style={[styles.label, { color: theme.text }]}>{stepInfo.label}</Text>
                       <TextInput
                         style={[styles.input, { borderColor: theme.text }]}
                         value={query}
@@ -108,7 +110,7 @@ export default function Signup() {
                             }}
                             style={styles.autocompleteItem}
                           >
-                            <Text style={styles.autocompleteText}>{city.label}</Text>
+                            <Text style={[styles.autocompleteText, { color: theme.text}]}>{city.label}</Text>
                           </TouchableOpacity>
                         ))}
                       </View>
@@ -238,7 +240,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   navButton: {
-    width: wp(35),
+    width: wp(30),
     height: hp(7),
     alignItems: "center",
     justifyContent: "center",

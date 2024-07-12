@@ -1,13 +1,13 @@
 const express = require("express");
 const router = express.Router();
-const { login, register, deleteUser } = require("../controllers/UserController");
+const { login, register, deleteUser, updateEmail } = require("../controllers/UserController");
 const verifyToken = require("../middleware/authentication");
 const User = require('../models/user');
 
 // Public routes
 router.post('/register', register);
 router.post('/login', login);
-router.delete('/delete/:userId', deleteUser, verifyToken)
+router.delete('/delete/:userId', verifyToken, deleteUser)
 
 // Authenticated route
 router.get('/me', verifyToken, async (req, res) => {
@@ -23,6 +23,8 @@ router.get('/me', verifyToken, async (req, res) => {
       res.status(500).json({ message: 'Server error' });
   }
 });
+
+router.put('/change-email', verifyToken, updateEmail);
 
 
 module.exports = router;

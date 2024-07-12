@@ -11,11 +11,14 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+    setLoading(true);
     try {
       setError('');
       await login(email, password);
+      setLoading(false)
     } catch (err) {
       setError('Failed to login. Please check your credentials and try again.');
     }
@@ -58,9 +61,15 @@ export default function Login() {
           onPress={handleLogin}
           style={[styles.btn, styles.shadow, { backgroundColor: theme.primaryBtn }]}
         >
-          <Text style={[styles.btnText, { color: "#f2f2f2", fontFamily: "Roboto-Bold" }]}>
+          {loading ? (
+            <Text style={[styles.btnText, { color: "#f2f2f2", fontFamily: "Roboto-Bold" }]}>
+            Loading...
+          </Text>
+          ) : (
+            <Text style={[styles.btnText, { color: "#f2f2f2", fontFamily: "Roboto-Bold" }]}>
             Login
           </Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>
@@ -110,7 +119,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   btn: {
-    width: wp(80),
+    width: "100%",
     height: hp(7),
     alignItems: 'center',
     justifyContent: 'center',

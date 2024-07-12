@@ -10,7 +10,8 @@ const themes = {
         primaryBtn: "#4c3bcf",
         btnTab: "#333333",
         dashBoardColorText: "#f4f4f4",
-        clickBackGround: "#333"
+        clickBackGround: "#333",
+        modelBg: "#555",
     },
     light: {
         background: "#f2f2f2", 
@@ -18,7 +19,8 @@ const themes = {
         primaryBtn: "#4c3bcf",
         btnTab: "#f2f2f2",
         dashBoardColorText: "#f4f4f4",
-        clickBackGround: "#dddddd"
+        clickBackGround: "#dddddd",
+        modelBg: "#fff",
     },
 };
 

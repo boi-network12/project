@@ -5,6 +5,7 @@ import AuthProvider, { useAuth } from '../context/AuthContext';
 import { ThemeProvider } from '../context/ThemeContext';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
+import { AlertProvider } from '../context/AlertContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -53,10 +54,12 @@ const MainLayout = () => {
 export default function RootLayout(){
   return (
      
-    <ThemeProvider>
     <AuthProvider>
-      <MainLayout />
+      <ThemeProvider>
+        <AlertProvider>
+          <MainLayout />
+        </AlertProvider>
+      </ThemeProvider>
     </AuthProvider>
-  </ThemeProvider>
   )
 }

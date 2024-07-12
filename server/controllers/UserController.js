@@ -7,6 +7,8 @@ const jwt = require('jsonwebtoken');
 const fs = require("fs");
 const path = require("path");
 const xlsx = require("xlsx");
+const mongoose = require("mongoose"); 
+const multer = require("multer");
 
 
 // Function to generate a random account number starting with specific prefixes
@@ -17,7 +19,8 @@ const generateAccountNumber = async () => {
     accountNumber += prefix;
 
     // Generate random digits to complete the account number (adjust length as needed)
-    const randomDigits = Math.floor(100000 + Math.random() * 900000);
+    const randomDigitsLength = 10 - prefix.length;
+    const randomDigits = Math.floor(Math.pow(10, randomDigitsLength - 1) + Math.random() * (Math.pow(10, randomDigitsLength - 1)));
     accountNumber += randomDigits;
 
     // Check if the account number already exists in the database
@@ -44,7 +47,7 @@ const register = [
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const { firstName, lastName, email, password, phoneNumber, address, profilePicture = "", otherName = "" } = req.body;
+        const { firstName, lastName, email, password, phoneNumber, address, profilePicture = "", otherName = "", nextOfKin } = req.body;
 
         try {
             let user = await User.findOne({ email });
@@ -65,7 +68,8 @@ const register = [
                 profilePicture,
                 accountNumber,
                 otherName,
-                role
+                role,
+                nextOfKin
             });
 
             const salt = await bcrypt.genSalt(10);
@@ -115,6 +119,7 @@ const register = [
                 message: "User created successfully",
                 token,  
                 user: {
+                    id: user.id,
                     firstName: user.firstName,
                     lastName: user.lastName,
                     email: user.email,
@@ -178,7 +183,6 @@ const login = async (req, res) => {
 
 
 
-
 // Update user profile
 const updateProfile = async (req, res) => {
     const userId = req.body.userId;
@@ -226,7 +230,7 @@ const getUserDetails = async (req, res) => {
     try {
       console.log(`Fetching user with ID: ${userId}`);
       
-      const user = await User.findById(userId);
+      const user = await User.findById(userId).populate('nextOfKin');
   
       if (!user) {
         return res.status(404).json({ error: "User not found", message: "User not found" });
@@ -342,6 +346,106 @@ const deleteUser = async (req, res) => {
     }
 }
 
+const updateStatus = async (req, res) => {
+    const { userId } = req.params;
+    const { status } = req.body;
+  
+    // Validate the status value
+    const validStatuses = ['single', 'married', 'divorced', 'widow', 'others'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ msg: 'Invalid status value' });
+    }
+  
+    // Check if userId is valid
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ msg: 'Invalid user ID format' });
+    }
+  
+    try {
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ msg: 'User not found' });
+      }
+  
+      user.status = status;
+      await user.save();
+  
+      res.status(200).json({ message: 'User status updated successfully', user });
+    } catch (error) {
+      console.error('Error updating user status:', error.message);
+      res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+// update user email
+const updateEmail = async (req, res) => {
+    const { newEmail, password } = req.body;
+
+    try {
+         // Validate request body
+         if (!newEmail || !password) {
+            return res.status(400).json({ error: "Please provide both email and password", message: "Please provide both email and password" });
+        }
+
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ error: "User not found", message: "User not found" });
+        }
+
+        // Check if the new email is already in use
+        if (await User.findOne({ email: newEmail })) {
+            return res.status(400).json({ error: "Email already in use", message: "Email already in use" });
+        }
+
+        // Check password
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ error: "Invalid password", message: "Invalid password" });
+        }
+
+        // Update email
+        user.email = newEmail;
+
+        await user.save();
+
+        // Generate a new token
+        const payload = {
+            user: {
+                id: user.id
+            },
+        };
+
+        const token = jwt.sign(
+            payload,
+            process.env.JWTPRIVATEKEY,
+            { expiresIn: '1h' }
+        );
+
+        res.status(200).json({
+            message: "Email updated successfully",
+            token,
+            user: {
+                id: user.id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                phoneNumber: user.phoneNumber,
+                address: user.address,
+                accountNumber: user.accountNumber,
+                otherName: user.otherName,
+                role: user.role
+            }
+        });
+
+
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).json({ error: error.message, message: "Internal server error" });
+    }
+}
+
+
+// kyc updates 
 // Export controllers
 module.exports = {
     login,
@@ -352,5 +456,7 @@ module.exports = {
     getUserTransactions,
     payBill,
     markNotificationAsRead,
-    deleteUser
+    deleteUser,
+    updateStatus,
+    updateEmail
 };

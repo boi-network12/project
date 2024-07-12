@@ -8,6 +8,7 @@ import BillsHeader from '../../components/BillsHeader';
 import ProfileHeader from '../../components/ProfileHeader';
 import { useAuth } from '../../context/AuthContext';
 import AccountHeader from '../../components/AccountHeader';
+import KycHeader from '../../components/KycHeader';
 
 export default function _layout() {
   const { user } = useAuth();
@@ -55,6 +56,13 @@ export default function _layout() {
         options={{
           title: "Account",
           header: () => <AccountHeader user={user} router={router}/>
+        }}
+      />
+      <Tabs.Screen
+        name="kycupdate"
+        options={{
+          title: "KYC",
+          header: () => <KycHeader user={user} router={router}/>
         }}
       />
     </Tabs>
