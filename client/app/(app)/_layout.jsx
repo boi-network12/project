@@ -20,7 +20,7 @@ export default function _layout() {
         name="home"
         options={{
           title: "Home",
-          header: () => <HomeHeader user={user} />,
+          header: () => false
         }}
       />
       <Tabs.Screen

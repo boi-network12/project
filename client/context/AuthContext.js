@@ -446,7 +446,7 @@ const AuthProvider = ({ children }) => {
     try {
       const token = await AsyncStorage.getItem('token');
       const userId = await AsyncStorage.getItem('userId');
-      
+
       const response = await fetch(`${SERVER_URL}/kyc/upload-kyc`, {
         method: 'POST',
         headers: {

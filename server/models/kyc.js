@@ -19,13 +19,18 @@ const KYCSchema = new Schema({
     verified: {
         type: Boolean,
         default: false,
-    }, profilePicture: {
-        type: String, 
+    },
+    profilePicture: {
+        type: String,
         required: true
     },
     ninImage: {
-        type: String, 
+        type: String,
         required: true
+    },
+    otherName: {
+        type: String,
+        default: ""
     },
     createdAt: {
         type: Date,

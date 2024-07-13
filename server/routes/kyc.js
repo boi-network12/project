@@ -1,31 +1,26 @@
 const express = require("express");
 const router = express.Router();
-const multer = require("multer");
-const path = require("path");
 const {
     uploadKYC,
     confirmKYC,
     rejectKYC,
     getAllKYCRecords
-} = require("../controllers/UserController");
+} = require("../controllers/KycController");
+const { validationResult, body } = require("express-validator");
 
-// Multer storage configuration
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, path.join(__dirname, '..', 'uploads'));
-    },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname));
-    }
-});
-
-const upload = multer({ storage });
 
 // Route to upload KYC documents
-router.post('/upload-kyc', upload.fields([
-    { name: 'profilePicture', maxCount: 1 },
-    { name: 'ninImage', maxCount: 1 }
-]), uploadKYC);
+router.post('/upload-kyc', [
+    body('userId').isMongoId(),
+    body('documentType').isIn(['passport', 'id_card', 'driver_license']),
+    body('document').not().isEmpty(),
+], (req, res, next) => {
+    const errors = validationResult(req);
+    if(!errors.isEmpty){
+        return res.status(400).json({errors: errors.array()});
+    }
+    next();
+});
 
 // Route to confirm or reject KYC
 router.post('/confirm-kyc', confirmKYC);

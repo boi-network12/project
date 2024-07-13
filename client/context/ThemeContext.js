@@ -5,7 +5,7 @@ const ThemeContext = createContext();
 
 const themes = {
     dark: {
-        background: "#rgba(0,0,0,0.9)",
+        background: "rgba(0,0,0,0.9)",
         text: "#f2f2f2", 
         primaryBtn: "#4c3bcf",
         btnTab: "#333333",
