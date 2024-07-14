@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     padding: hp(1),
     gap: hp(2),
-    marginBottom: hp(5)
+    marginBottom: hp(4)
   },
   balanceSection: {
     width: "100%",
@@ -168,7 +168,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: hp(2),
     width: "50%",
-    
   },
   icons: {
     flexDirection: "row",

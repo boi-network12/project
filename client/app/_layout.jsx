@@ -24,10 +24,10 @@ const MainLayout = () => {
     // 
     if (typeof isAuthenticated == 'undefined') return
 
-    const inApp = segments[0] == '(app)'
+    const inApp = segments[0] === '(app)'
     if (isAuthenticated && !inApp){
       router.replace('home')
-    } else if (isAuthenticated === false) {
+    } else if (isAuthenticated == false) {
       router.replace('welcome')
   }
   },[isAuthenticated])

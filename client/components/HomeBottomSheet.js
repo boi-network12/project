@@ -42,7 +42,7 @@ export default function HomeBottomSheet({ user, theme }) {
 
     const interpolate = animation.interpolate({
         inputRange: [0, 1],
-        outputRange: [height - 430, 80],
+        outputRange: [height - 435, 80],
     });
 
     const animatedStyle = {
@@ -77,6 +77,7 @@ const styles = StyleSheet.create({
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         height: height,
+        zIndex: 0
     },
     sheetHandle: {
         width: 60,

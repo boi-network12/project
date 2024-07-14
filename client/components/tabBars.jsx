@@ -99,11 +99,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 13,
     borderCurve: 'continuous',
-    shadowColor: "#333",
-    shadowOffset: { width: 0, height: -5 },
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -10 },
     shadowRadius: 10,
-    shadowOpacity: 0.1,
-    elevation: 5
+    shadowOpacity: 1,
+    elevation: 20,
+    zIndex: 999
   },
   tabBarItem: {
     flex: 1,
