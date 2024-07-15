@@ -95,7 +95,7 @@ export default function Account() {
       'Logout confirmation',
       'Are you sure you want to logout?',
     () => {
-      logoutUser();
+      logout();
     },
     () => {
       console.log('Logout cancel')

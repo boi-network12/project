@@ -50,6 +50,7 @@ export const AlertProvider = ({ children }) => {
           color: theme.text,
           fontSize: 16,
           marginBottom: 20,
+          fontFamily: "Roboto-Regular"
         },
         button: {
           padding: 10,

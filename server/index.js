@@ -26,6 +26,7 @@ const billPaymentRoutes = require("./routes/billPayments");
 const notificationRoutes = require("./routes/notification");
 const nextOfKinRoutes = require('./routes/nextOfKin');
 const kycRoutes = require('./routes/kyc');
+const savedCardRoutes = require('./routes/savedcard')
 
 // use routes
 app.use('/auth', authRoutes);
@@ -35,6 +36,7 @@ app.use('/bill', billPaymentRoutes);
 app.use('/notification', notificationRoutes);
 app.use('/nextOfKin', nextOfKinRoutes);
 app.use('/kyc', kycRoutes)
+app.use('/saved-card', savedCardRoutes)
 
 
 

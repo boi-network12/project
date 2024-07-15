@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert, Image, Acti
 import { ThemeContext } from '../../context/ThemeContext';
 import { useAuth } from '../../context/AuthContext';
 import * as ImagePicker from 'expo-image-picker';
+import DropDownPicker from 'react-native-dropdown-picker';
+import { heightPercentageToDP as hp } from "react-native-responsive-screen";
 
 export default function KycUpdate() {
     const theme = useContext(ThemeContext);
@@ -14,6 +16,12 @@ export default function KycUpdate() {
     const [selfieImage, setSelfieImage] = useState(null);
     const [ninImage, setNinImage] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [open, setOpen] = useState(false);
+    const [items, setItems] = useState([
+        { label: 'Passport', value: 'passport' },
+        { label: 'ID Card', value: 'id_card' },
+        { label: 'Driver License', value: 'driver_license' },
+    ]);
 
     const handleSelfieUpload = async () => {
         try {
@@ -52,45 +60,54 @@ export default function KycUpdate() {
     const handleSubmit = async () => {
         try {
             setLoading(true);
-
+    
             if (!ninNumber || !documentType || !documentNumber) {
                 Alert.alert('All fields are required');
                 setLoading(false);
                 return;
             }
-
+    
             const formData = new FormData();
             formData.append('userId', user?.id);  // Assuming user object contains id
             formData.append('ninNumber', ninNumber);
             formData.append('otherName', otherName);
             formData.append('documentType', documentType);
             formData.append('documentNumber', documentNumber);
-
+    
             if (selfieImage) {
-                formData.append('selfieImage', {
+                const selfieName = selfieImage.split('/').pop();
+                const selfieType = `image/${selfieName.split('.').pop()}`;
+                formData.append('profilePicture', {
                     uri: selfieImage,
-                    name: 'selfie.jpg',
-                    type: 'image/jpeg',
+                    name: selfieName,
+                    type: selfieType,
                 });
             }
-
+    
             if (ninImage) {
+                const ninName = ninImage.split('/').pop();
+                const ninType = `image/${ninName.split('.').pop()}`;
                 formData.append('ninImage', {
                     uri: ninImage,
-                    name: 'nin.jpg',
-                    type: 'image/jpeg',
+                    name: ninName,
+                    type: ninType,
                 });
             }
-
+    
+            // Debugging line to check the FormData content
+            for (let pair of formData._parts) {
+                console.log(pair[0] + ': ' + pair[1]);
+            }
+    
             await postKycData(formData);
-
+    
             setNinNumber('');
             setOtherName('');
             setDocumentType('');
             setDocumentNumber('');
             setSelfieImage(null);
             setNinImage(null);
-
+    
             Alert.alert('KYC submitted successfully');
         } catch (error) {
             console.error('Error submitting KYC:', error);
@@ -99,6 +116,11 @@ export default function KycUpdate() {
             setLoading(false);
         }
     };
+    
+    
+    
+    
+    
 
     return (
         <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -111,35 +133,41 @@ export default function KycUpdate() {
                     <TextInput
                         style={[styles.input, { color: theme.text, borderColor: theme.primaryBtn }]}
                         placeholder={`Surname: ${user?.lastName}  FirstName: ${user?.firstName}`}
-                        placeholderTextColor={theme.text}
+                        placeholderTextColor={theme.clickBackGround}
                         editable={false}
                         selectTextOnFocus={false}
                     />
                     <TextInput
                         style={[styles.input, { color: theme.text, borderColor: theme.primaryBtn }]}
                         placeholder="Other Name"
-                        placeholderTextColor={theme.text}
+                        placeholderTextColor={theme.clickBackGround}
                         value={otherName}
                         onChangeText={setOtherName}
                     />
-                    <TextInput
-                        style={[styles.input, { color: theme.text, borderColor: theme.primaryBtn }]}
-                        placeholder="Document Type"
-                        placeholderTextColor={theme.text}
+                    <DropDownPicker
+                        open={open}
                         value={documentType}
-                        onChangeText={setDocumentType}
+                        items={items}
+                        setOpen={setOpen}
+                        setValue={setDocumentType}
+                        setItems={setItems}
+                        placeholder="Select Document Type"
+                        style={[styles.input, { borderColor: theme.primaryBtn, fontFamily: "Roboto-Regular", color: theme.text, backgroundColor: theme.background  }]}
+                        placeholderStyle={{ color: theme.clickBackGround }}
+                        dropDownContainerStyle={{ backgroundColor: theme.btnTab}}
+                        textStyle={{ color: theme.text, fontFamily: "Roboto-Regular"  }}
                     />
                     <TextInput
                         style={[styles.input, { color: theme.text, borderColor: theme.primaryBtn }]}
                         placeholder="Document Number"
-                        placeholderTextColor={theme.text}
+                        placeholderTextColor={theme.clickBackGround}
                         value={documentNumber}
                         onChangeText={setDocumentNumber}
                     />
                     <TextInput
                         style={[styles.input, { color: theme.text, borderColor: theme.primaryBtn }]}
                         placeholder="NiN Number"
-                        placeholderTextColor={theme.text}
+                        placeholderTextColor={theme.clickBackGround}
                         value={ninNumber}
                         onChangeText={setNinNumber}
                     />
@@ -191,11 +219,11 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     input: {
-        height: 50,
-        borderWidth: 1,
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        marginBottom: 16,
+        fontFamily: "Roboto-Regular",
+        borderWidth: hp(.1),
+        padding: hp(1),
+        marginBottom: hp(4),
+        marginTop: hp(1)
     },
     uploadContainer: {
         marginBottom: 16,
@@ -203,6 +231,7 @@ const styles = StyleSheet.create({
     uploadText: {
         fontSize: 16,
         marginBottom: 8,
+        fontFamily: "Roboto-Regular",
     },
     uploadedImage: {
         width: 200,
@@ -214,10 +243,11 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 8,
+        fontFamily: "Roboto-Regular",
     },
     submitButtonText: {
         color: '#fff',
         fontSize: 16,
-        fontWeight: 'bold',
+        fontFamily: "Roboto-Bold",
     },
 });

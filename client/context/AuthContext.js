@@ -305,7 +305,6 @@ const AuthProvider = ({ children }) => {
   };
   
   
-  
   const updateUserStatus = async (userId, newStatus) => {
     try {
       const token = await AsyncStorage.getItem('token');
@@ -442,36 +441,205 @@ const AuthProvider = ({ children }) => {
     }
   };
   
-  const postKycData = async (kycData) => {
+  const postKycData = async (formData) => {
+    try {
+        const token = await AsyncStorage.getItem('token');
+
+        const response = await fetch(`${SERVER_URL}/kyc/upload-kyc`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Failed to post KYC data:', errorData);
+            throw new Error(errorData.message || 'Failed to post KYC data');
+        }
+
+        const data = await response.json();
+        console.log('KYC data posted:', data);
+        return data;
+    } catch (error) {
+        console.error('Post KYC data error:', error);
+        throw error;
+    }
+};
+
+
+  const changePassword = async (oldPassword, newPassword) => {
     try {
       const token = await AsyncStorage.getItem('token');
-      const userId = await AsyncStorage.getItem('userId');
 
-      const response = await fetch(`${SERVER_URL}/kyc/upload-kyc`, {
+      if(!token) throw new Error('No token available');
+
+      const response = await fetch(`${SERVER_URL}/auth/change-password`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type' : 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ oldPassword, newPassword })
+      });
+
+      const data = await response.json();
+
+      if(response.ok){
+        console.log('Password changed successFull: ', data);
+      } else {
+        throw new Error(data.message || 'something went wrong');
+      }
+      
+    } catch (error) {
+      throw new Error('Network error: ' + error.message);
+    }
+  }
+
+  const forgetPassword = async (email) => {
+    try {
+      const response = await fetch(`${SERVER_URL}/auth/forget-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ ...kycData, userId }), 
+        body: JSON.stringify({ email })
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        console.log('OTP sent successfully');
+        // Optionally, handle success actions like showing a confirmation message
+      } else {
+        throw new Error(data.message || 'Failed to send OTP');
+      }
+  
+    } catch (error) {
+      throw new Error('Network error: ' + error.message);
+    }
+  }
+  
+  const verifyOtpAndResetPassword = async (email, otp, newPassword) => {
+    try {
+      const response = await fetch(`${SERVER_URL}/auth/reset-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, otp, newPassword })
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        console.log('Password reset successfully');
+        // Optionally, handle success actions like redirecting to login screen
+      } else {
+        throw new Error(data.message || 'Failed to reset password');
+      }
+  
+    } catch (error) {
+      throw new Error('Network error: ' + error.message);
+    }
+  }
+
+  const addCard = async (cardData) => {
+  try {
+    // Validate cardData (example: ensure it has a cardNumber and expiresDate)
+    if (!cardData.cardNumber || !cardData.expiresDate) {
+      throw new Error('Invalid card data: cardNumber and expiresDate are required');
+    }
+
+    const token = await AsyncStorage.getItem('token');
+    const response = await fetch(`${SERVER_URL}/saved-card/add`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(cardData),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log('Card added successfully:', data);
+      return { success: true, data };
+    } else {
+      const errorData = await response.json();
+      console.error('Failed to add card:', errorData);
+      return { success: false, error: errorData };
+    }
+  } catch (error) {
+    console.error('Error adding card:', error);
+    return { success: false, error };
+  }
+};
+
+  const getUserCards = async (userId) => {
+    try {
+        const token = await AsyncStorage.getItem('token');
+        const response = await fetch(`${SERVER_URL}/saved-card/user/${userId}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json' // Ensure Content-Type is set
+            },
+        });
+
+        // Log the response status and headers
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+
+        const contentType = response.headers.get('content-type');
+
+        // Check if the response content type is JSON
+        if (contentType && contentType.includes('application/json')) {
+            const data = await response.json();
+            if (response.ok) {
+                return { success: true, data: data.cards };
+            } else {
+                return { success: false, error: data };
+            }
+        } else {
+            // Read and log the response text for non-JSON responses
+            const text = await response.text();
+            console.error('Unexpected response format:', text);
+            return { success: false, error: `Unexpected response format: ${text}` };
+        }
+
+    } catch (error) {
+        console.error('Error fetching user cards:', error);
+        return { success: false, error };
+    }
+}
+
+const deleteCard = async (cardId) => {
+  try {
+      const token = await AsyncStorage.getItem('token');
+      const response = await fetch(`${SERVER_URL}/saved-card/${cardId}`, {
+          method: 'DELETE',
+          headers: {
+              'Authorization': `Bearer ${token}`,
+          },
       });
 
+      // Handle response
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Failed to post KYC data:', errorData);
-        throw new Error(errorData.message || 'Failed to post KYC data');
+          const errorText = await response.text();
+          console.error('Failed to delete card:', errorText);
+          return { success: false, error: errorText };
       }
 
-      const data = await response.json();
-      console.log('KYC data posted:', data);
-      return data;
-    } catch (error) {
-      console.error('Post KYC data error:', error);
-      throw error;
-    }
-  };
-  
-  
+      console.log('Card deleted successfully');
+      return { success: true };
+  } catch (error) {
+      console.error('Error deleting card:', error);
+      return { success: false, error };
+  }
+};
+
 
 
   return (
@@ -495,7 +663,13 @@ const AuthProvider = ({ children }) => {
       confirmKyc,
       getAllKyc,
       rejectKyc,
-      postKycData
+      postKycData,
+      changePassword,
+      forgetPassword,
+      verifyOtpAndResetPassword,
+      addCard,
+      getUserCards,
+      deleteCard
       }}>
       {children}
     </AuthContext.Provider>

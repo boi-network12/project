@@ -9,6 +9,7 @@ import ProfileHeader from '../../components/ProfileHeader';
 import { useAuth } from '../../context/AuthContext';
 import AccountHeader from '../../components/AccountHeader';
 import KycHeader from '../../components/KycHeader';
+import SavedCardHeader from '../../components/SavedCardHeader';
 
 export default function _layout() {
   const { user } = useAuth();
@@ -63,6 +64,20 @@ export default function _layout() {
         options={{
           title: "KYC",
           header: () => <KycHeader user={user} router={router}/>
+        }}
+      />
+      <Tabs.Screen
+        name="security"
+        options={{
+          title: "Security",
+          header: () => false
+        }}
+      />
+      <Tabs.Screen
+        name="savedcard"
+        options={{
+          title: "Save card",
+          header: () => <SavedCardHeader router={router}/>
         }}
       />
     </Tabs>

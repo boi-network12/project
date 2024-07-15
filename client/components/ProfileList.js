@@ -10,8 +10,15 @@ export default function ProfileList({router, theme, user}) {
         router.push("account");
     }
 
-    console.log("Constants.manifest.version:", Constants.manifest ? Constants.manifest.version : null);
+    const pushToSecurity = () => {
+        router.push("security");
+    }
 
+    const pushToSavedCard = () => {
+        router.push('savedcard')
+    }
+
+    
   return (
     <ScrollView contentContainerStyle={[styles.container]} >
         <TouchableWithoutFeedback>
@@ -36,14 +43,17 @@ export default function ProfileList({router, theme, user}) {
         <Text style={[styles.textBold, { color: theme.text }]}>Account</Text>
         <View style={[styles.downContainer, { backgroundColor: theme.clickBackGround }]}>
             
-            <TouchableWithoutFeedback onPress={pushToAccount}>
+            <TouchableWithoutFeedback 
+                onPress={pushToAccount}>
                 <View style={styles.click}>
                 <Text style={[styles.textTin, { color: theme.text }]}>Account Details</Text>
                 <Entypo name='chevron-right' size={hp(3)} color={theme.text}/>
                 </View>
             </TouchableWithoutFeedback>
 
-            <TouchableWithoutFeedback>
+            <TouchableWithoutFeedback
+                onPress={pushToSecurity}
+            >
                 <View style={styles.click}>
                 <Text style={[styles.textTin, { color: theme.text }]}>Security</Text>
                 <Entypo name='chevron-right' size={hp(3)} color={theme.text}/>
@@ -64,7 +74,9 @@ export default function ProfileList({router, theme, user}) {
                 </View>
             </TouchableWithoutFeedback>
 
-            <TouchableWithoutFeedback>
+            <TouchableWithoutFeedback
+                onPress={pushToSavedCard}
+            >
                 <View style={styles.click}>
                 <Text style={[styles.textTin, { color: theme.text }]}>Saved Cards </Text>
                 <Entypo name='chevron-right' size={hp(3)} color={theme.text}/>

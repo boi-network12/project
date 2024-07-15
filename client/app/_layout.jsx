@@ -10,27 +10,26 @@ import { AlertProvider } from '../context/AlertContext';
 SplashScreen.preventAutoHideAsync();
 
 const MainLayout = () => {
-  const {isAuthenticated} = useAuth();
-    const segments = useSegments();
-    const router = useRouter();
-    const [fontsLoaded] = useFonts({
-      'SpaceMono': require('../assets/fonts/SpaceMono-Regular.ttf'),
-      'Roboto-Black': require('../assets/fonts/Roboto-Black.ttf'),
-      'Roboto-Bold': require('../assets/fonts/Roboto-Bold.ttf'),
-      'Roboto-Regular': require('../assets/fonts/Roboto-Regular.ttf'),
-    });
+  const { isAuthenticated } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+  const [fontsLoaded] = useFonts({
+    'SpaceMono': require('../assets/fonts/SpaceMono-Regular.ttf'),
+    'Roboto-Black': require('../assets/fonts/Roboto-Black.ttf'),
+    'Roboto-Bold': require('../assets/fonts/Roboto-Bold.ttf'),
+    'Roboto-Regular': require('../assets/fonts/Roboto-Regular.ttf'),
+  });
 
   useEffect(() => {
-    // 
-    if (typeof isAuthenticated == 'undefined') return
+    if (typeof isAuthenticated === 'undefined' || !fontsLoaded) return;
 
-    const inApp = segments[0] === '(app)'
-    if (isAuthenticated && !inApp){
-      router.replace('home')
-    } else if (isAuthenticated == false) {
-      router.replace('welcome')
-  }
-  },[isAuthenticated])
+    const inApp = segments[0] === '(app)';
+    if (isAuthenticated && !inApp) {
+      router.replace('home');
+    } else if (!isAuthenticated) {
+      router.replace('welcome');
+    }
+  }, [isAuthenticated, fontsLoaded]);
 
   useEffect(() => {
     if (fontsLoaded) {
@@ -38,22 +37,27 @@ const MainLayout = () => {
     }
   }, [fontsLoaded]);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded || typeof isAuthenticated === 'undefined') {
     return (
-      <View >
+      <View style={styles.loader}>
         <ActivityIndicator size="large" />
       </View>
     );
   }
 
-  return <Slot/>
+  return <Slot />;
+};
 
-}
+const styles = StyleSheet.create({
+  loader: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
 
-
-export default function RootLayout(){
+export default function RootLayout() {
   return (
-     
     <AuthProvider>
       <ThemeProvider>
         <AlertProvider>
@@ -61,5 +65,5 @@ export default function RootLayout(){
         </AlertProvider>
       </ThemeProvider>
     </AuthProvider>
-  )
+  );
 }

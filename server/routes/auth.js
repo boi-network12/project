@@ -1,13 +1,15 @@
 const express = require("express");
 const router = express.Router();
-const { login, register, deleteUser, updateEmail } = require("../controllers/UserController");
+const { login, register, deleteUser, updateEmail, sendOtp, verifyOtpAndResetPassword, changePassword } = require("../controllers/UserController");
 const verifyToken = require("../middleware/authentication");
 const User = require('../models/user');
 
 // Public routes
 router.post('/register', register);
 router.post('/login', login);
-router.delete('/delete/:userId', verifyToken, deleteUser)
+router.delete('/delete/:userId', verifyToken, deleteUser);
+router.post('/forget-password', sendOtp);
+router.post('/reset-password', verifyOtpAndResetPassword);
 
 // Authenticated route
 router.get('/me', verifyToken, async (req, res) => {
@@ -25,6 +27,7 @@ router.get('/me', verifyToken, async (req, res) => {
 });
 
 router.put('/change-email', verifyToken, updateEmail);
+router.put('/change-password', verifyToken, changePassword)
 
 
 module.exports = router;
