@@ -28,6 +28,10 @@ export default function HomeHeader({ user }) {
     router.push("account")
   }
 
+  const pushToUserTransfer = () => {
+    router.push("transferuser")
+  }
+
   return (
     <View style={[styles.container, { backgroundColor: theme.primaryBtn }]}>
       <StatusBar style="auto" />
@@ -95,7 +99,9 @@ export default function HomeHeader({ user }) {
                   fontSize: hp("2rem")
                 }} >Other Banks</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.tIcon}>
+          <TouchableOpacity 
+            onPress={pushToUserTransfer}
+          style={styles.tIcon}>
               <MaterialIcons name="compare-arrows" size={hp(3.3)} color={theme.dashBoardColorText}/>
               <Text style={{
                 color: theme.dashBoardColorText,
@@ -120,7 +126,7 @@ export default function HomeHeader({ user }) {
 const styles = StyleSheet.create({
   container: {
     width: "100%",
-    height: hp(40),
+    height: hp(50),
     paddingTop: hp(3.8)
   },
   safeArea: {

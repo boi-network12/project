@@ -38,8 +38,6 @@ app.use('/nextOfKin', nextOfKinRoutes);
 app.use('/kyc', kycRoutes)
 app.use('/saved-card', savedCardRoutes)
 
-
-
 const PORT = process.env.PORT || 2001
 app.listen(PORT, () => {
     console.log(`server is running in port ${PORT}`)

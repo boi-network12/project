@@ -20,6 +20,7 @@ export default function Login() {
       await login(email, password);
       setLoading(false)
     } catch (err) {
+      setLoading(false);
       setError('Failed to login. Please check your credentials and try again.');
     }
   };

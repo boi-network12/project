@@ -137,7 +137,7 @@ export default function Signup() {
                     onPress={() => setStep(step - 1)}
                     style={[styles.navButton, styles.shadow, { backgroundColor: theme.secondaryBtn }]}
                   >
-                    <Text style={[styles.btnText, { color: "#f2f2f2", fontFamily: "Roboto-Bold" }]}>Back</Text>
+                    <Text style={[styles.btnText, { color: theme.text, fontFamily: "Roboto-Bold" }]}>Back</Text>
                   </TouchableOpacity>
                 )}
                 {step < steps.length - 1 ? (
@@ -171,7 +171,7 @@ const TextInputField = ({ label, error, ...props }) => {
   const theme = useContext(ThemeContext);
   return (
     <View style={styles.fieldContainer}>
-      <Text style={[styles.label, { color: "#f2f2f2" }]}>{label}</Text>
+      <Text style={[styles.label, { color: theme.text }]}>{label}</Text>
       <TextInput
         style={[styles.input, { borderColor: theme.text, color: theme.text }]}
         {...props}
@@ -240,18 +240,11 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   navButton: {
-    width: wp(30),
+    width: wp(35),
     height: hp(7),
     alignItems: "center",
     justifyContent: "center",
     borderRadius: 10,
-  },
-  shadow: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 6,
   },
   btnText: {
     fontSize: hp(2.5),

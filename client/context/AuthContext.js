@@ -5,7 +5,7 @@ const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
 
-const SERVER_URL = 'http://192.168.43.132:4000';
+const SERVER_URL = 'http://192.168.201.4:4000';
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);

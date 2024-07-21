@@ -80,6 +80,13 @@ export default function _layout() {
           header: () => <SavedCardHeader router={router}/>
         }}
       />
+      <Tabs.Screen
+        name="transferuser"
+        options={{
+          title: "Transfer",
+          header: () => false
+        }}
+      />
     </Tabs>
   );
 }
