@@ -11,6 +11,22 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import * as Clipboard from 'expo-clipboard';
 import { useRouter } from "expo-router"
 
+const formatAmount = (amount) => {
+  const formattedAmount = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(amount);
+
+  return `₦${formattedAmount}`;
+};
+
+const getFontSize = (amount) => {
+  const length = amount.length;
+  if (length <= 6) return hp("3rem");
+  if (length <= 9) return hp("2.5rem");
+  return hp("2.0rem");
+};
+
 export default function HomeHeader({ user }) {
   const theme = useContext(ThemeContext);
   const [isBalanceVisible, setIsBalanceVisible] = useState(true);
@@ -31,6 +47,9 @@ export default function HomeHeader({ user }) {
   const pushToUserTransfer = () => {
     router.push("transferuser")
   }
+
+  const formattedAmount = formatAmount(user?.balance || 0.00);
+  const fontSize = getFontSize(formattedAmount);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.primaryBtn }]}>
@@ -68,9 +87,9 @@ export default function HomeHeader({ user }) {
                 <Text style={{
                   color: theme.dashBoardColorText,
                   fontFamily: "Roboto-Bold",
-                  fontSize: hp("3.5rem")
+                  fontSize: fontSize
                 }}>
-                  {isBalanceVisible ? `₦ ${user?.balance || 0.00}` : '****'}
+                  {isBalanceVisible ? formattedAmount : '****'}
                 </Text>
                 <TouchableOpacity onPress={toggleBalanceVisibility}>
                   <FontAwesome6 name={isBalanceVisible ? "eye-slash" : "eye"} size={hp(2.2)} color={theme.dashBoardColorText} />
@@ -91,30 +110,23 @@ export default function HomeHeader({ user }) {
             </View>
         </View>
         <View style={styles.icons} >
-          <TouchableOpacity style={styles.tIcon} >
-              <Feather name="send" size={hp(3.1)} color={theme.dashBoardColorText}/>
+          <TouchableOpacity style={styles.tIcon} onPress={pushToUserTransfer}>
+              <Feather name="arrow-up-right" size={hp(3.1)} color={theme.dashBoardColorText}/>
               <Text style={{
                 color: theme.dashBoardColorText,
                 fontFamily: "Roboto-Regular",
-                  fontSize: hp("2rem")
-                }} >Other Banks</Text>
+                  fontSize: hp("2rem"),
+                  textTransform: "capitalize"
+                }} >transfer</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
-            onPress={pushToUserTransfer}
-          style={styles.tIcon}>
-              <MaterialIcons name="compare-arrows" size={hp(3.3)} color={theme.dashBoardColorText}/>
-              <Text style={{
-                color: theme.dashBoardColorText,
-                fontFamily: "Roboto-Regular",
-                  fontSize: hp("2.2rem")
-                }}>User</Text>
-          </TouchableOpacity>
+          
           <TouchableOpacity style={styles.tIcon}>
               <MaterialIcons name="add-card" size={hp(3.2)} color={theme.dashBoardColorText}/>
               <Text style={{
                 color: theme.dashBoardColorText,
                 fontFamily: "Roboto-Regular",
-                  fontSize: hp("2.1rem")
+                  fontSize: hp("2rem"),
+                  textTransform: "capitalize"
                 }}>Request</Text>
           </TouchableOpacity>
         </View>
@@ -183,9 +195,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: hp(3)
   },
   tIcon: {
-    flexDirection: "column",
+    flexDirection: "row",
     alignItems: "center",
-    gap: hp(0.3)
+    gap: hp(0.3),
+    justifyContent: "center",
+    gap: hp(1.5),
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    width: "45%",
+    height: hp(6),
+    borderRadius: hp(0.7)
   }
 
 });

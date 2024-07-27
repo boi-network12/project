@@ -10,6 +10,7 @@ import { useAuth } from '../../context/AuthContext';
 import AccountHeader from '../../components/AccountHeader';
 import KycHeader from '../../components/KycHeader';
 import SavedCardHeader from '../../components/SavedCardHeader';
+import TransferHeader from '../../components/TransferHeader';
 
 export default function _layout() {
   const { user } = useAuth();

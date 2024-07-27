@@ -36,7 +36,7 @@ export default function ProfileList({router, theme, user}) {
                     >{user?.email}</Text>
                     <Text
                         style={[styles.textTin, { color: theme.text }]}
-                    >{`Account Number - ${user?.accountNumber}`}</Text>
+                    >{`Account No - ${user?.accountNumber}`}</Text>
                 </View>
             </View>
         </TouchableWithoutFeedback>

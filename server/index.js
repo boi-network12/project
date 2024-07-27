@@ -26,7 +26,8 @@ const billPaymentRoutes = require("./routes/billPayments");
 const notificationRoutes = require("./routes/notification");
 const nextOfKinRoutes = require('./routes/nextOfKin');
 const kycRoutes = require('./routes/kyc');
-const savedCardRoutes = require('./routes/savedcard')
+const savedCardRoutes = require('./routes/savedcard');
+const transferRoutes = require('./routes/transfer')
 
 // use routes
 app.use('/auth', authRoutes);
@@ -37,6 +38,7 @@ app.use('/notification', notificationRoutes);
 app.use('/nextOfKin', nextOfKinRoutes);
 app.use('/kyc', kycRoutes)
 app.use('/saved-card', savedCardRoutes)
+app.use('/transfer', transferRoutes)
 
 const PORT = process.env.PORT || 2001
 app.listen(PORT, () => {

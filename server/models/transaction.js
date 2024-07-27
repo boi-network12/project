@@ -30,9 +30,20 @@ const TransactionSchema = new Schema({
         type: String,
         enum: ['transfer', 'deposit', 'withdrawal'],
         required: true
+    },
+    note: {
+        type: String,
+        required: false
+    },
+    ipAddress: {
+        type: String,
+        required: true
     }
 });
 
+// NOTE: for the note it can be the description or the note user can implement it or user can not 
+// 
+// 
 // Optional: Add hooks for updating user balances
 TransactionSchema.post('save', async function(doc) {
     const User = mongoose.model('User');

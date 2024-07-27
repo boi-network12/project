@@ -5,7 +5,7 @@ const AuthContext = createContext();
 
 export const useAuth = () => useContext(AuthContext);
 
-const SERVER_URL = 'http://192.168.201.4:4000';
+const SERVER_URL = 'http://192.168.29.4:4000';
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -640,6 +640,72 @@ const deleteCard = async (cardId) => {
   }
 };
 
+const sendMoney = async (recipientAccountNumber, amount, note) => {
+  try {
+    const token = await AsyncStorage.getItem('token')
+    const userId = await AsyncStorage.getItem('userId')
+
+    if(!token || !userId){
+      throw new Error('Authentication required')
+    }
+
+    const response = await fetch(`${SERVER_URL}/transfer/send`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        senderId: userId,
+        recipientAccountNumber,
+        amount,
+        note
+      })
+    })
+
+    if(response.ok){
+      const data = await response.json()
+      console.log('Transfer successful', data)
+      return data
+    } else {
+      const errorData = await response.json()
+      throw new Error(errorData.message || 'Transfer failed')
+    } 
+
+
+  } catch (error) {
+    console.error('Error sending money: ', error)
+    throw error
+  }
+}
+
+const handleGetUserToTransfer = async (recipientAccountNumber) => {
+  try {
+    const token = await AsyncStorage.getItem('token')
+    const response = await fetch(`${SERVER_URL}/transfer/${recipientAccountNumber}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if(response.ok){
+      const data = await response.json()
+      return data 
+    } else {
+      const errorData = await response.json()
+      throw new Error(errorData.message || 'User not found')
+    }
+
+  } catch (error) {
+    console.error('Error fetching user details:', error);
+    throw error;
+  }
+}
+
+
+
 
 
   return (
@@ -669,7 +735,9 @@ const deleteCard = async (cardId) => {
       verifyOtpAndResetPassword,
       addCard,
       getUserCards,
-      deleteCard
+      deleteCard,
+      sendMoney,
+      handleGetUserToTransfer
       }}>
       {children}
     </AuthContext.Provider>

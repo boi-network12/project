@@ -1,71 +1,105 @@
-// send money (Transfer)
-const User = require("../models/user")
-const  Transaction = require("../models/transaction")
+const User = require("../models/user");
+const Transaction = require("../models/transaction");
+const { v4: uuidv4 } = require('uuid');
 
 const sendMoney = async (req, res) => {
-    const { senderId, recipientAccountNumber, amount } = req.body
+    const { senderId, recipientAccountNumber, amount, note } = req.body;
+    const ipAddress = req.ip;
 
     try {
-        const sender = await User.findById(senderId)
-        
-        if(!sender) {
+        const sender = await User.findById(senderId);
+
+        if (!sender) {
             return res.status(404).json({
-                error: "sender not found",
-                message: "Sender not fount"
-            })
+                error: "Sender not found",
+                message: "Sender not found"
+            });
         }
 
-        
-        if(sender.balance < amount){
-                return res.status(400).json({
-                    error: "Insufficient funds",
-                    message: "Insufficient Funds"
-                })
+        // Ensure amount and balances are numbers
+        const amountToSend = Number(amount);
+        const senderBalance = Number(sender.balance);
+
+        if (isNaN(amountToSend) || isNaN(senderBalance)) {
+            return res.status(400).json({
+                error: "Invalid amount",
+                message: "Invalid amount"
+            });
         }
 
-        const recipient = await User.findById({ accountNumber: recipientAccountNumber })
+        if (senderBalance < amountToSend) {
+            return res.status(400).json({
+                error: "Insufficient funds",
+                message: "Insufficient Funds"
+            });
+        }
 
-        if(!recipient){
+        const recipient = await User.findOne({ accountNumber: recipientAccountNumber });
+
+        if (!recipient) {
             return res.status(404).json({
                 error: "Recipient not found",
                 message: "Recipient not found"
-            })
+            });
+        }
+
+        // Ensure recipient balance is a number
+        const recipientBalance = Number(recipient.balance);
+
+        if (isNaN(recipientBalance)) {
+            return res.status(400).json({
+                error: "Invalid recipient balance",
+                message: "Invalid recipient balance"
+            });
         }
 
         // Deduct amount from sender's balance
-        sender.balance -= amount
+        sender.balance = senderBalance - amountToSend;
+        await sender.save();
 
-        // save transaction for sender
-        const senderTransaction = new Transaction({
-            sender: senderId,
-            recipient: recipient._id,
-            amount,
-            transactionType: 'transfer'
-        })
-        await senderTransaction.save()
+        // Log updated sender balance
+        console.log(`Sender balance after deduction: ${sender.balance}`);
 
         // Add amount to recipient's balance
-        recipient.balance += amount
+        recipient.balance = recipientBalance + amountToSend;
+        await recipient.save();
 
-        // save transaction for recipient
-        const recipientTransaction = new Transaction({
+        // Log updated recipient balance
+        console.log(`Recipient balance after addition: ${recipient.balance}`);
+
+        // Generate a unique reference ID
+        const referenceId = uuidv4();
+
+        // Save transaction for sender
+        const senderTransaction = new Transaction({
+            referenceId,
             sender: senderId,
             recipient: recipient._id,
-            amount,
-            transactionType: 'deposit'
-        })
-        await recipientTransaction.save()
+            amount: amountToSend,
+            transactionType: 'transfer',
+            note,
+            ipAddress
+        });
+        await senderTransaction.save();
 
-        // save updated balances
-        await sender.save()
-        await recipient.save()
+        // Save transaction for recipient
+        const recipientTransaction = new Transaction({
+            referenceId,
+            sender: senderId,
+            recipient: recipient._id,
+            amount: amountToSend,
+            transactionType: 'deposit',
+            note,
+            ipAddress
+        });
+        await recipientTransaction.save();
 
         res.status(200).json({
-            message: "Money sent successFully",
+            message: "Money sent successfully",
             sender,
-            recipient
-        })
-
+            recipient,
+            referenceId
+        });
 
     } catch (error) {
         console.error(error.message);
